@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #222222;
+  --foreground: #f2f2f2;
+  --customred: #bd1334;
+  --customgreen: #006636;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background: #f2f2f2;
+    --foreground: #222222;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Rubik, sans-serif;
+}
