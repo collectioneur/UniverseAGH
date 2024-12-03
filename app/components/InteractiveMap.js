@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import calculateBounds from "./calculations";
 import calculatePath from "../calculations/calculatePath.js";
+import VectorMap from "./VectorMap";
 
 const InteractiveMap = ({ height, width }) => {
   const [features, setFeatures] = useState([]);
@@ -80,6 +81,17 @@ const InteractiveMap = ({ height, width }) => {
     setDragging(false);
   };
 
+  const handleClick = (e) => {
+    const { offsetX, offsetY } = e.nativeEvent;
+    const elementWidth = e.currentTarget.getBoundingClientRect().width;
+    const elementHeight = e.currentTarget.getBoundingClientRect().height;
+    console.log(elementHeight, elementWidth);
+    const coordX =
+      (offsetX / elementWidth) * (bounds.xMax - bounds.xMin) + bounds.xMin;
+    const coordY =
+      bounds.yMax - (offsetY / elementHeight) * (bounds.yMax - bounds.yMin);
+    setCoord1([coordX, coordY]);
+  };
   const handleWheel = (e) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -scale * 0.2 : scale * 0.2;
@@ -98,11 +110,12 @@ const InteractiveMap = ({ height, width }) => {
         <svg
           ref={svgRef}
           xmlns="http://www.w3.org/2000/svg"
-          className="w-auto h-auto absolute mx-10"
+          className="absolute mx-10"
           onMouseDown={handleMouseDown}
           viewBox={`0 0 ${(bounds.xMax - bounds.xMin) * 15000} ${
             (bounds.yMax - bounds.yMin) * 15000
           }`}
+          onClick={handleClick}
           style={
             {
               // transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
