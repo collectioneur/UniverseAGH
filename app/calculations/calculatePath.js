@@ -18,7 +18,6 @@ function findNearestPoint([x1, y1], graph) {
 export default function calculatePath([x1, y1], [x2, y2], graph) {
   let [startPoint, distanceFromStart] = findNearestPoint([x1, y1], graph);
   let [endPoint, distanceFromEnd] = findNearestPoint([x2, y2], graph);
-  console.log({ startPoint, endPoint });
   const distances = new Map();
   const previous = new Map();
   const visited = new Set();
@@ -47,6 +46,5 @@ export default function calculatePath([x1, y1], [x2, y2], graph) {
   }
   path.push(startPoint.split(",").map(Number));
   const distance = distances.get(endPoint) + distanceFromEnd;
-  console.log({ distance });
   return [distance, path.reverse()];
 }

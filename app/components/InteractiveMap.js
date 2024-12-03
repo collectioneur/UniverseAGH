@@ -2,37 +2,25 @@
 import { useState, useEffect, useRef } from "react";
 import calculateBounds from "./calculations";
 import calculatePath from "../calculations/calculatePath.js";
-import VectorMap from "./VectorMap";
+import { mapBounds, scale } from "../utils/constants";
 
-const InteractiveMap = ({ height, width }) => {
+const InteractiveMap = () => {
   const [features, setFeatures] = useState([]);
-  const [scale, setScale] = useState(1);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
-  const [bounds, setBounds] = useState({ xMin: 0, xMax: 0, yMin: 0, yMax: 0 });
   const svgRef = useRef(null);
   const [graph, setGraph] = useState({});
   const [coord1, setCoord1] = useState([19.9166232, 50.0660631]);
   const [coord2, setCoord2] = useState([19.9027846, 50.0691655]);
-  const [ans, setAns] = useState(0);
+  const [distance, setDistance] = useState(0);
   const [path, setPath] = useState([]);
 
-  const handleCoordChange = (e, setCoord) => {
-    const { name, value } = e.target;
-    setCoord((prev) => {
-      const newCoord = [...prev];
-      newCoord[name === "x" ? 0 : 1] = Number(value);
-      console.log(newCoord);
-      return newCoord;
-    });
+  const convertToSVGCoordinates = ([x, y]) => {
+    return `${(x - mapBounds.xMin) * scale},${(mapBounds.yMax - y) * scale}`;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Coord1:", coord1);
-    console.log("Coord2:", coord2);
-    const [a, p] = calculatePath(coord1, coord2, graph);
-    setAns(a);
+    const [d, p] = calculatePath(coord1, coord2, graph);
+    setDistance(p);
     setPath(p);
   };
 
@@ -53,7 +41,6 @@ const InteractiveMap = ({ height, width }) => {
           ...polygonsGeoJSON.features,
           ...linesGeoJSON.features,
         ];
-        setBounds(calculateBounds(allFeatures));
         setFeatures(allFeatures);
       } catch (error) {
         console.error("Error loading GeoJSON:", error);
@@ -63,75 +50,37 @@ const InteractiveMap = ({ height, width }) => {
     loadGeoJSON();
   }, []);
 
-  const handleMouseDown = (e) => {
-    setDragging(true);
-    svgRef.current.startX = e.clientX - position.x;
-    svgRef.current.startY = e.clientY - position.y;
-  };
-
-  const handleMouseMove = (e) => {
-    if (!dragging) return;
-    setPosition({
-      x: e.clientX - svgRef.current.startX,
-      y: e.clientY - svgRef.current.startY,
-    });
-  };
-
-  const handleMouseUp = () => {
-    setDragging(false);
-  };
-
   const handleClick = (e) => {
     const { offsetX, offsetY } = e.nativeEvent;
     const elementWidth = e.currentTarget.getBoundingClientRect().width;
     const elementHeight = e.currentTarget.getBoundingClientRect().height;
-    console.log(elementHeight, elementWidth);
     const coordX =
-      (offsetX / elementWidth) * (bounds.xMax - bounds.xMin) + bounds.xMin;
+      (offsetX / elementWidth) * (mapBounds.xMax - mapBounds.xMin) +
+      mapBounds.xMin;
     const coordY =
-      bounds.yMax - (offsetY / elementHeight) * (bounds.yMax - bounds.yMin);
+      mapBounds.yMax -
+      (offsetY / elementHeight) * (mapBounds.yMax - mapBounds.yMin);
+    setPath([]);
     setCoord1([coordX, coordY]);
-  };
-  const handleWheel = (e) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -scale * 0.2 : scale * 0.2;
-    setScale((prev) => Math.max(1, prev + delta));
   };
 
   return (
     <>
-      <div
-        className="relative  overflow-hidden h-[500px] bg-background border rounded-[15px] flex items-center justify-center"
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
-      >
+      <div className="relative  overflow-hidden bg-background border rounded-[15px] h-[500px] flex items-center">
         <svg
           ref={svgRef}
           xmlns="http://www.w3.org/2000/svg"
-          className="absolute mx-10"
-          onMouseDown={handleMouseDown}
-          viewBox={`0 0 ${(bounds.xMax - bounds.xMin) * 15000} ${
-            (bounds.yMax - bounds.yMin) * 15000
+          className="h-auto w-auto absolute mx-10"
+          viewBox={`0 0 ${(mapBounds.xMax - mapBounds.xMin) * scale} ${
+            (mapBounds.yMax - mapBounds.yMin) * scale
           }`}
           onClick={handleClick}
-          style={
-            {
-              // transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-              // transformOrigin: "center",
-              // cursor: dragging ? "grabbing" : "grab",
-            }
-          }
         >
           {features.map((feature, index) => {
             const { geometry } = feature;
             if (geometry.type === "LineString") {
               const points = geometry.coordinates
-                .map(
-                  ([x, y]) =>
-                    `${(x - bounds.xMin) * 15000},${(bounds.yMax - y) * 15000}`
-                )
+                .map(([x, y]) => convertToSVGCoordinates([x, y]))
                 .join(" ");
               return (
                 <polyline
@@ -145,12 +94,7 @@ const InteractiveMap = ({ height, width }) => {
             } else if (geometry.type === "Polygon") {
               return geometry.coordinates.map((ring, i) => {
                 const points = ring
-                  .map(
-                    ([x, y]) =>
-                      `${(x - bounds.xMin) * 15000},${
-                        (bounds.yMax - y) * 15000
-                      }`
-                  )
+                  .map(([x, y]) => convertToSVGCoordinates([x, y]))
                   .join(" ");
                 return (
                   <polygon
@@ -167,83 +111,40 @@ const InteractiveMap = ({ height, width }) => {
           })}
           <polyline
             points={path
-              .map(
-                ([x, y]) =>
-                  `${(x - bounds.xMin) * 15000},${(bounds.yMax - y) * 15000}`
-              )
+              .map(([x, y]) => convertToSVGCoordinates([x, y]))
               .join(" ")}
             stroke="black"
             fill="none"
             strokeWidth="2"
           />
           <circle
-            cx={`${(coord2[0] - bounds.xMin) * 15000}`}
-            cy={`${(bounds.yMax - coord2[1]) * 15000}`}
+            cx={`${(coord2[0] - mapBounds.xMin) * scale}`}
+            cy={`${(mapBounds.yMax - coord2[1]) * scale}`}
             r="2"
-            fill="var(--customgreen)"
+            fill="black"
           />
           <circle
-            cx={`${(coord1[0] - bounds.xMin) * 15000}`}
-            cy={`${(bounds.yMax - coord1[1]) * 15000}`}
+            cx={`${(coord1[0] - mapBounds.xMin) * scale}`}
+            cy={`${(mapBounds.yMax - coord1[1]) * scale}`}
             r="2"
-            fill="var(--customgreen)"
+            fill="black"
           />
         </svg>
       </div>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <input
-            type="number"
-            name="x"
-            value={coord1[0]}
-            onChange={(e) => handleCoordChange(e, setCoord1)}
-            placeholder="X1"
-            className="mr-10"
-          />
-          <input
-            type="number"
-            name="y"
-            value={coord1[1]}
-            onChange={(e) => handleCoordChange(e, setCoord1)}
-            placeholder="Y1"
-            className="mr-10"
-          />
-        </div>
+      <button onClick={handleSubmit}>Calculate</button>
 
-        <div>
-          <input
-            type="number"
-            name="x"
-            value={coord2[0]}
-            onChange={(e) => handleCoordChange(e, setCoord2)}
-            placeholder="X2"
-            className="mr-10"
-          />
-          <input
-            type="number"
-            name="y"
-            value={coord2[1]}
-            onChange={(e) => handleCoordChange(e, setCoord2)}
-            placeholder="Y2"
-            className="mr-10"
-          />
-        </div>
-
-        <button type="submit">Calculate</button>
-
-        <div>
-          <h3>Coordinates:</h3>
-          <p>
-            Coord 1: X = {coord1[0]}, Y = {coord1[1]}
-          </p>
-          <p>
-            Coord 2: X = {coord2[0]}, Y = {coord2[1]}
-          </p>
-        </div>
-        <div>
-          <h3>Distance: {ans}</h3>
-        </div>
-      </form>
+      <div>
+        <h3>Coordinates:</h3>
+        <p>
+          Coord 1: X = {coord1[0]}, Y = {coord1[1]}
+        </p>
+        <p>
+          Coord 2: X = {coord2[0]}, Y = {coord2[1]}
+        </p>
+      </div>
+      <div>
+        <h3>Distance: {distance}</h3>
+      </div>
     </>
   );
 };
