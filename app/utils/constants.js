@@ -1,8 +1,8 @@
 export const mapBounds = {
-  xMin: 19.9000311,
-  xMax: 19.9241269,
-  yMin: 50.0639688,
-  yMax: 50.0701396,
+  xMin: 19.8994187190269,
+  xMax: 19.924686785344647,
+  yMin: 50.06356250419583,
+  yMax: 50.07073872149052,
 };
 
 export const scale = 15000;

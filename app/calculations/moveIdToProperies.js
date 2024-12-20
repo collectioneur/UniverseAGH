@@ -18,13 +18,13 @@ async function moveIdToProperties(inputPath, outputPath) {
     });
 
     await fs.writeFile(outputPath, JSON.stringify(json, null, 2), "utf-8");
-    console.log("Файл успешно обработан и сохранен:", outputPath);
+    console.log("Jest git:", outputPath);
   } catch (err) {
-    console.error("Ошибка обработки файла:", err);
+    console.error("Nie jest git:", err);
   }
 }
 
-const inputPath = "./app/components/agh_map_lines.json";
-const outputPath = "./app/components/agh_map_lines.json";
+const inputPath = "./app/components/agh-map-lines.json";
+const outputPath = "./app/components/agh-map-lines.json";
 
 moveIdToProperties(inputPath, outputPath);

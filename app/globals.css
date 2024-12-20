@@ -3,22 +3,44 @@
 @tailwind utilities;
 
 :root {
-  --background: #222222;
-  --foreground: #f2f2f2;
-  --customred: #bd1334;
-  --lightred: #b7465c;
-  --customgreen: #006636;
+  --background: 34, 34, 34;
+  --foreground: 242, 242, 242;
+  --customred: 189, 19, 52;
+  --lightred: #b7465cff;
+  --customgreen: 0, 102, 54;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --background: #f2f2f2;
-    --foreground: #222222;
+    --background: 242, 242, 242;
+    --foreground: 34, 34, 34;
   }
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: rgb(var(--foreground));
+  background: rgb(var(--background));
   font-family: Rubik, sans-serif;
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+button:active {
+  scale: 0.9;
+}
+
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
 }

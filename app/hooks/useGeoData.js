@@ -1,16 +1,68 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { mapBounds, scale } from "../utils/constants";
 import calculatePath from "../calculations/calculatePath.js";
+import calculateBounds from "../calculations/calculations";
+import calculateNearestLocation from "../calculations/calculateNearestLocation";
+import { useMap } from "../context/MapContext";
 
 function useGeoData() {
-  const [features, setFeatures] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [coord1, setCoord1] = useState([19.9166232, 50.0660631]);
-  const [coord2, setCoord2] = useState([19.9027846, 50.0691655]);
-  const [distance, setDistance] = useState(0);
-  const [path, setPath] = useState([]);
-  const [graph, setGraph] = useState([]);
+  const {
+    features,
+    setFeatures,
+    loading,
+    setLoading,
+    error,
+    setError,
+    points,
+    setPoints,
+    distance,
+    setDistance,
+    path,
+    setPath,
+    graph,
+    setGraph,
+    svgRef,
+    setPathFinderIsOn,
+    pathFinderIsOn,
+  } = useMap();
+
+  const findSearchResults = (searchString) => {
+    const filteredFeatures = features.filter((feature) =>
+      feature.properties.name && feature.properties.name.toLowerCase().includes(searchString.toLowerCase())
+    );
+    return filteredFeatures.map((feature) => {
+      if(feature.geometry.type === "Point") {
+        return {
+          name: feature.properties.name,
+          coordinates: feature.geometry.coordinates,
+        };
+      }
+      else if(feature.geometry.type === "LineString") {
+        return {
+          name: feature.properties.name,
+          coordinates: feature.geometry.coordinates[0],
+        };
+      }
+      else if(feature.geometry.type === "Polygon") {
+        return {
+          name: feature.properties.name,
+          coordinates: feature.properties.centroid,
+        };
+      }
+    });
+  }
+  const resetPathFinder = () => {
+    setPoints([]);
+    setDistance(0);
+    setPath([]);
+  };
+
+  const handlePathFinderToggle = () => {
+    if (pathFinderIsOn) {
+      resetPathFinder();
+    }
+    setPathFinderIsOn(!pathFinderIsOn);
+  };
 
   const convertToSVGCoordinates = ([x, y]) => {
     return `${(x - mapBounds.xMin) * scale},${(mapBounds.yMax - y) * scale}`;
@@ -18,68 +70,60 @@ function useGeoData() {
 
   const findShortestPath = (e) => {
     e.preventDefault();
-    const [d, p] = calculatePath(coord1, coord2, graph);
+    const [d, p] = calculatePath(points, graph);
     setDistance(d.toFixed(0));
     setPath(p);
   };
 
-  const choosePoint = (e) => {
-    const { offsetX, offsetY } = e.nativeEvent;
+  const addNewPoint = (coordinates) => {
+    if (points.length < 5) {
+      const location = calculateNearestLocation(features, coordinates);
+      setPoints([...points, { coordinates, location }]);
+    } else alert("You can only choose up to 5 points");
+  };
+
+  const chooseNewPoint = (e) => {
+    const { clientX, clientY } = e;
     const elementWidth = e.currentTarget.getBoundingClientRect().width;
     const elementHeight = e.currentTarget.getBoundingClientRect().height;
+    const left = e.currentTarget.getBoundingClientRect().left;
+    const top = e.currentTarget.getBoundingClientRect().top;
     const coordX =
-      (offsetX / elementWidth) * (mapBounds.xMax - mapBounds.xMin) +
+      ((clientX - left) / elementWidth) * (mapBounds.xMax - mapBounds.xMin) +
       mapBounds.xMin;
     const coordY =
       mapBounds.yMax -
-      (offsetY / elementHeight) * (mapBounds.yMax - mapBounds.yMin);
+      ((clientY - top) / elementHeight) * (mapBounds.yMax - mapBounds.yMin);
     setPath([]);
-    setCoord1([coordX, coordY]);
+    if (pathFinderIsOn) addNewPoint([coordX, coordY]);
+    setDistance(0);
   };
 
-  useEffect(() => {
-    const loadGeoJSON = async () => {
-      setLoading(true);
-      try {
-        const [polygonsResponse, linesResponse, graphResponse] =
-          await Promise.all([
-            fetch("/agh_map_poligons.json"),
-            fetch("/agh_map_lines.json"),
-            fetch("/graph.json"),
-          ]);
+  const deletePoint = (index) => {
+    setPoints(points.filter((_, i) => i !== index));
+    setPath([]);
+    setDistance(0);
+  };
 
-        const polygonsGeoJSON = await polygonsResponse.json();
-        const linesGeoJSON = await linesResponse.json();
-        const graphJSON = await graphResponse.json();
-
-        const allFeatures = [
-          ...polygonsGeoJSON.features,
-          ...linesGeoJSON.features,
-        ];
-        setFeatures(allFeatures);
-        setGraph(graphJSON);
-        setLoading(false);
-      } catch (error) {
-        setError(error);
-        setLoading(false);
-      }
-    };
-
-    loadGeoJSON();
-  }, []);
+  const swapPoints = (index1, index2) => {
+    const newPoints = [...points];
+    const temp = newPoints[index1];
+    newPoints[index1] = newPoints[index2];
+    newPoints[index2] = temp;
+    setPoints(newPoints);
+    setPath([]);
+    setDistance(0);
+  };
 
   return {
-    features,
-    loading,
-    error,
-    coord1,
-    coord2,
-    distance,
-    path,
-    graph,
     findShortestPath,
-    choosePoint,
+    chooseNewPoint,
     convertToSVGCoordinates,
+    deletePoint,
+    swapPoints,
+    handlePathFinderToggle,
+    findSearchResults,
+    addNewPoint,
   };
 }
 

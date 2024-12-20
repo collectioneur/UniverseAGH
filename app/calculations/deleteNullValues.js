@@ -32,13 +32,13 @@ async function processJsonFile(inputFilePath, outputFilePath) {
       JSON.stringify(cleanedData, null, 2),
       "utf8"
     );
-    console.log(`Файл успешно обработан и сохранен в ${outputFilePath}`);
+    console.log(`Jest git: ${outputFilePath}`);
   } catch (error) {
-    console.error("Ошибка обработки файла:", error);
+    console.error("Nie jest git:", error);
   }
 }
 
-const inputFile = "app/components/agh_map_points.json";
-const outputFile = "app/components/agh_map_points.json";
+const inputFile = "app/components/agh-map-points.json";
+const outputFile = "app/components/agh-map-points.json";
 
 processJsonFile(inputFile, outputFile);

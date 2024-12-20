@@ -26,11 +26,9 @@ function findLargestComponent() {
       components.push(component);
     }
   }
-  console.log("Ilosc komponentow:", components.length);
 
   let largestComponent = [];
   for (const component of components) {
-    console.log("Ilosc punktow u komponenta: ", component.length);
     if (component.length > largestComponent.length) {
       largestComponent = component;
     }
@@ -114,10 +112,10 @@ async function makeGraph(inputPath, outputPath) {
   const graphJson = JSON.stringify(Object.fromEntries(graph));
 
   await fs.writeFile(outputPath, graphJson, "utf-8");
-  console.log("Файл успешно обработан и сохранен:", outputPath);
+  console.log("Jest git:", outputPath);
 }
 
-const inputPath = "./public/agh_map_lines.json";
+const inputPath = "./public/agh-map-lines.json";
 const outputPath = "./public/graph.json";
 
 makeGraph(inputPath, outputPath);

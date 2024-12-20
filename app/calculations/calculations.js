@@ -31,6 +31,5 @@ export default function calculateBounds(features) {
       yMax = Math.max(yMax, y);
     }
   }
-  console.log({ xMin, xMax, yMin, yMax });
   return { xMin, xMax, yMin, yMax };
 }

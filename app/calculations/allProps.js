@@ -27,19 +27,18 @@ async function showAllProps(inputPath, outputPath) {
         }
       }
     });
-    console.log(map);
     await fs.writeFile(
       outputPath,
       JSON.stringify(Object.fromEntries(map)),
       "utf-8"
     );
-    console.log("Файл успешно обработан и сохранен:", outputPath);
+    console.log("Jest git: ", outputPath);
   } catch (err) {
-    console.error("Ошибка обработки файла:", err);
+    console.error("Nie jest git:", err);
   }
 }
 
-const inputPath = "./public/agh_map_poligons.json";
-const outputPath = "./public/allAboutPoligons.json";
+const inputPath = "./public/agh-map-points.json";
+const outputPath = "./public/all-about-points.json";
 
 showAllProps(inputPath, outputPath);
