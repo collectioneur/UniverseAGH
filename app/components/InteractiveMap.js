@@ -26,6 +26,9 @@ const InteractiveMap = () => {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onTouchStart={handleMouseDown}
+          onTouchMove={handleMouseMove}
+          onTouchEnd={handleMouseUp}
           onWheel={handleWheel}
           viewBox={`0 0 ${(mapBounds.xMax - mapBounds.xMin) * scale} ${
             (mapBounds.yMax - mapBounds.yMin) * scale
