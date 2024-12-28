@@ -31,10 +31,10 @@ export const MapProvider = ({ children }) => {
       try {
         const [pointsResponse, polygonsResponse, linesResponse, graphResponse] =
           await Promise.all([
-            fetch("/agh-map-points.json"),
-            fetch("/agh-map-poligons.json"),
-            fetch("/agh-map-lines.json"),
-            fetch("/graph.json"),
+            fetch("./agh-map-points.json"),
+            fetch("./agh-map-poligons.json"),
+            fetch("./agh-map-lines.json"),
+            fetch("./graph.json"),
           ]);
         const pointsGeoJSON = await pointsResponse.json();
         const polygonsGeoJSON = await polygonsResponse.json();

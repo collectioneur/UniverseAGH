@@ -33,7 +33,7 @@ export default function MapPath() {
         <svg key={index}>
           <image
             key={index}
-            href="/pointer.svg"
+            href="./pointer.svg"
             x={`${
               (point.coordinates[0] - mapBounds.xMin) * 15000 -
               scaleElement(20, 10, zoom) / 2

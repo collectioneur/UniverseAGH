@@ -56,7 +56,7 @@ export default function MapControls() {
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <image
-                        href="/delete.svg"
+                        href="./delete.svg"
                         x="0"
                         y="0"
                         width="20"
@@ -78,7 +78,7 @@ export default function MapControls() {
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <image
-                        href="/swap.svg"
+                        href="./swap.svg"
                         x="0"
                         y="0"
                         width="30"
